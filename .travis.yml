@@ -7,4 +7,4 @@ rvm:
 env: EXCLUDE_SCHEMA_VERSION=draft4
 before_install:
   - git submodule update --init --recursive
-  - cd test && bundle install
+  - cd tests && bundle install
