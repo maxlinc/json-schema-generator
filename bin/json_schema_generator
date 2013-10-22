@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require 'json-schema-generator'
+require 'json/schema_generator_cli'
+JSON::SchemaGeneratorCLI.new(ARGV.dup).execute!
