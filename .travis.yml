@@ -1,0 +1,10 @@
+language: ruby
+rvm:
+- 2.0.0
+- 1.9.3
+- jruby-19mode
+- rbx-19mode
+env: EXCLUDE_SCHEMA_VERSION=draft4
+before_install:
+  - git submodule update --init --recursive
+  - cd test && bundle install
