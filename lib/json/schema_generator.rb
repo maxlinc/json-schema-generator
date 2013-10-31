@@ -42,6 +42,7 @@ module JSON
       buffer = StringIO.new
       buffer.puts "\"#{key}\": {"
       case value
+      when NilClass
       when TrueClass, FalseClass
         buffer.puts '"type": "boolean",'
         buffer.puts '"required": true'
@@ -86,7 +87,11 @@ module JSON
       buffer = StringIO.new
       buffer.puts '"type": "array",'
       buffer.puts '"required": true,'
-      buffer.puts '"minItems": 1,'
+      if data.size == 0
+        buffer.puts '"minItems": 0,'
+      else
+        buffer.puts '"minItems": 1,'
+      end
       buffer.puts '"uniqueItems": true,'
       buffer.puts create_values("items", data.first)
 
