@@ -31,32 +31,38 @@ module JSON
 
     protected
 
-    def create_values(key, value, required_keys = nil, in_array = false)
+    def create_primitive(statement_group, key, value, required_keys)
       if required_keys.nil?
         required = true
       else
         required = required_keys.include? key
       end
 
+      type = case value
+      when TrueClass, FalseClass
+        "boolean"
+      when String
+        "string"
+      when Integer
+        "integer"
+      when Float
+        "number"
+      else
+        raise "Unknown Primitive Type for #{key}! #{value.class}"
+      end
+
+      statement_group.add "\"type\": \"#{type}\""
+      statement_group.add "\"required\": #{required}" if @version == DRAFT3
+      # statement_group.add "\"default\": #{value.inspect}"
+    end
+
+    def create_values(key, value, required_keys = nil, in_array = false)
       statement_group = StatementGroup.new key
       # buffer.puts "\"#{key}\": {"
       case value
       when NilClass
-      when TrueClass, FalseClass
-        statement_group.add '"type": "boolean"'
-        statement_group.add "\"required\": #{required}" if @version == DRAFT3
-
-      when String
-        statement_group.add '"type": "string"'
-        statement_group.add "\"required\": #{required}" if @version == DRAFT3
-
-      when Integer
-        statement_group.add '"type": "integer"'
-        statement_group.add "\"required\": #{required}" if @version == DRAFT3
-
-      when Float
-        statement_group.add '"type": "number"'
-        statement_group.add "\"required\": #{required}" if @version == DRAFT3
+      when TrueClass, FalseClass, String, Integer, Float
+        create_primitive(statement_group, key, value, required_keys)
       when Array
         create_array(statement_group, value, detect_required(value))
       when Hash
