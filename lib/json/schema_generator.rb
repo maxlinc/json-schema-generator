@@ -27,7 +27,7 @@ module JSON
       # 
       data = JSON.load(raw_data)
 
-      @buffer.puts create_hash(data)
+      @buffer.puts create_hash(data, nil)
       close
       result
     end
@@ -38,30 +38,36 @@ module JSON
       @buffer.puts "}"
     end
 
-    def create_values(key, value)
+    def create_values(key, value, required_keys = nil)
+      if required_keys.nil?
+        required = true
+      else
+        required = required_keys.include? key
+      end
+
       buffer = StringIO.new
       buffer.puts "\"#{key}\": {"
       case value
       when NilClass
       when TrueClass, FalseClass
         buffer.puts '"type": "boolean",'
-        buffer.puts '"required": true'
+        buffer.puts "\"required\": #{required}"
 
       when String
         buffer.puts '"type": "string",'
-        buffer.puts '"required": true'
+        buffer.puts "\"required\": #{required}"
 
       when Integer
         buffer.puts '"type": "integer",'
-        buffer.puts '"required": true'
+        buffer.puts "\"required\": #{required}"
 
       when Float
         buffer.puts '"type": "number",'
-        buffer.puts '"required": true'
+        buffer.puts "\"required\": #{required}"
       when Array
-        buffer << create_array(value)
+        buffer << create_array(value, detect_required(value))
       when Hash
-        buffer << create_hash(value)
+        buffer << create_hash(value, required_keys)
       else
         raise "Unknown Type for #{key}! #{value.class}"
       end
@@ -69,13 +75,13 @@ module JSON
       buffer.string
     end
 
-    def create_hash(data)
+    def create_hash(data, required_keys)
       buffer = StringIO.new
       buffer.puts '"type": "object",'
       buffer.puts '"required": true,'
       buffer.puts '"properties": {'
       items = data.collect do |k,v|
-        create_values k,v
+        create_values k, v, required_keys
       end
       buffer << items.join(",\n")
       buffer.puts '}'
@@ -83,7 +89,7 @@ module JSON
       buffer.string
     end
 
-    def create_array(data)
+    def create_array(data, required_keys)
       buffer = StringIO.new
       buffer.puts '"type": "array",'
       buffer.puts '"required": true,'
@@ -93,9 +99,18 @@ module JSON
         buffer.puts '"minItems": 1,'
       end
       buffer.puts '"uniqueItems": true,'
-      buffer.puts create_values("items", data.first)
+      buffer.puts create_values("items", data.first, required_keys)
 
       buffer.string
+    end
+
+    def detect_required(collection)
+      begin
+        required_keys = collection.map(&:keys).inject{|required,keys| required & keys }
+      rescue
+        required_keys = nil
+      end
+      required_keys
     end
 
     def result
