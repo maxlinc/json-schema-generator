@@ -2,6 +2,9 @@ require 'json/schema_generator/statement_group'
 
 module JSON
   class SchemaGenerator
+    DRAFT3 = 'draft-03'
+    DRAFT4 = 'draft-04'
+
     class << self
       def generate name, data, version
         generator = JSON::SchemaGenerator.new name, version
@@ -12,8 +15,8 @@ module JSON
     def initialize name, version = 'draft3'
       @buffer = StringIO.new
       @name = name
-      @version = 'draft-03' if version == 'draft3'
-      @version = 'draft-04' if version == 'draft4'
+      @version = DRAFT3 if version == 'draft3'
+      @version = DRAFT4 if version == 'draft4'
     end
 
     def generate raw_data
@@ -22,9 +25,10 @@ module JSON
       statement_group = StatementGroup.new
       statement_group.add "\"$schema\": \"http://json-schema.org/#{@version}/schema#\""
       statement_group.add "\"description\": \"Generated from #{@name} with shasum #{Digest::SHA1.hexdigest raw_data}\""
-      statement_group.add '"type": "object"'
-      statement_group.add '"required": true'
-      statement_group.add create_hash_properties(data, nil)
+      create_hash(statement_group, data, detect_required(data))
+      # statement_group.add '"type": "object"'
+      # statement_group.add '"required": true' if @version == DRAFT3
+      # statement_group.add create_hash_properties(data, detect_required(data))
       @buffer.puts statement_group
       result
     end
@@ -44,23 +48,23 @@ module JSON
       when NilClass
       when TrueClass, FalseClass
         statement_group.add '"type": "boolean"'
-        statement_group.add "\"required\": #{required}"
+        statement_group.add "\"required\": #{required}" if @version == DRAFT3
 
       when String
         statement_group.add '"type": "string"'
-        statement_group.add "\"required\": #{required}"
+        statement_group.add "\"required\": #{required}" if @version == DRAFT3
 
       when Integer
         statement_group.add '"type": "integer"'
-        statement_group.add "\"required\": #{required}"
+        statement_group.add "\"required\": #{required}" if @version == DRAFT3
 
       when Float
         statement_group.add '"type": "number"'
-        statement_group.add "\"required\": #{required}"
+        statement_group.add "\"required\": #{required}" if @version == DRAFT3
       when Array
         create_array(statement_group, value, detect_required(value))
       when Hash
-        create_hash(statement_group, value, required_keys)
+        create_hash(statement_group, value, detect_required(value))
       else
         raise "Unknown Type for #{key}! #{value.class}"
       end
@@ -70,7 +74,12 @@ module JSON
     def create_hash(statement_group, data, required_keys)
       # statement_group = StatementGroup.new
       statement_group.add '"type": "object"'
-      statement_group.add '"required": true'
+      statement_group.add '"required": true' if @version == DRAFT3
+      if @version == DRAFT4
+        required_keys ||= []
+        required_string = required_keys.map(&:inspect).join ', '
+        statement_group.add "\"required\": [#{required_string}]"
+      end
       statement_group.add create_hash_properties data, required_keys
       statement_group
     end
@@ -86,7 +95,7 @@ module JSON
     def create_array(statement_group, data, required_keys)
       # statement_group = StatementGroup.new
       statement_group.add '"type": "array"'
-      statement_group.add '"required": true'
+      statement_group.add '"required": true' if @version == DRAFT3
       if data.size == 0
         statement_group.add '"minItems": 0'
       else
@@ -102,7 +111,11 @@ module JSON
       begin
         required_keys = collection.map(&:keys).inject{|required,keys| required & keys }
       rescue
-        required_keys = nil
+        if collection.respond_to? :keys
+          required_keys = collection.keys
+        else
+          required_keys = nil
+        end
       end
       required_keys
     end

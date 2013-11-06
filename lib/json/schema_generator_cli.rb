@@ -4,8 +4,9 @@ class JSON::SchemaGeneratorCLI
   end
 
   def execute!
-    file = ARGV[0]
-    schema = JSON.parse(JSON::SchemaGenerator.generate file, File.read(file), ARGV[1])
+    file = ARGV.shift
+    version = ARGV.shift || 'draft3'
+    schema = JSON.parse(JSON::SchemaGenerator.generate file, File.read(file), version)
     @stdout.puts JSON.pretty_generate schema
     @kernel.exit(0)
   end
