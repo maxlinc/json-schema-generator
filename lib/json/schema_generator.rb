@@ -21,21 +21,17 @@ module JSON
 
     def generate raw_data
       data = JSON.load(raw_data)
-      # Write header
       statement_group = StatementGroup.new
       statement_group.add "\"$schema\": \"http://json-schema.org/#{@version}/schema#\""
       statement_group.add "\"description\": \"Generated from #{@name} with shasum #{Digest::SHA1.hexdigest raw_data}\""
       create_hash(statement_group, data, detect_required(data))
-      # statement_group.add '"type": "object"'
-      # statement_group.add '"required": true' if @version == DRAFT3
-      # statement_group.add create_hash_properties(data, detect_required(data))
       @buffer.puts statement_group
       result
     end
 
     protected
 
-    def create_values(key, value, required_keys = nil)
+    def create_values(key, value, required_keys = nil, in_array = false)
       if required_keys.nil?
         required = true
       else
@@ -64,7 +60,11 @@ module JSON
       when Array
         create_array(statement_group, value, detect_required(value))
       when Hash
-        create_hash(statement_group, value, detect_required(value))
+        if in_array
+          create_hash(statement_group, value, required_keys)
+        else
+          create_hash(statement_group, value, detect_required(value))
+        end
       else
         raise "Unknown Type for #{key}! #{value.class}"
       end
@@ -102,7 +102,7 @@ module JSON
         statement_group.add '"minItems": 1'
       end
       statement_group.add '"uniqueItems": true'
-      statement_group.add create_values("items", data.first, required_keys)
+      statement_group.add create_values("items", data.first, required_keys, true)
 
       statement_group
     end
