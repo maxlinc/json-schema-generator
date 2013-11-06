@@ -1,3 +1,5 @@
+require 'json/schema_generator/statement_group'
+
 module JSON
   class SchemaGenerator
     class << self
@@ -15,28 +17,19 @@ module JSON
     end
 
     def generate raw_data
-      # Write header
-      @buffer.puts "{"
-      @buffer.puts "\"$schema\": \"http://json-schema.org/#{@version}/schema#\","
-      @buffer.print '"description": "Generated from '
-      @buffer.print @name
-      @buffer.print " with shasum "
-      @buffer.print Digest::SHA1.hexdigest raw_data
-      @buffer.puts '",'
-
-      # 
       data = JSON.load(raw_data)
-
-      @buffer.puts create_hash(data, nil)
-      close
+      # Write header
+      statement_group = StatementGroup.new
+      statement_group.add "\"$schema\": \"http://json-schema.org/#{@version}/schema#\""
+      statement_group.add "\"description\": \"Generated from #{@name} with shasum #{Digest::SHA1.hexdigest raw_data}\""
+      statement_group.add '"type": "object"'
+      statement_group.add '"required": true'
+      statement_group.add create_hash_properties(data, nil)
+      @buffer.puts statement_group
       result
     end
 
     protected
-
-    def close
-      @buffer.puts "}"
-    end
 
     def create_values(key, value, required_keys = nil)
       if required_keys.nil?
@@ -45,63 +38,64 @@ module JSON
         required = required_keys.include? key
       end
 
-      buffer = StringIO.new
-      buffer.puts "\"#{key}\": {"
+      statement_group = StatementGroup.new key
+      # buffer.puts "\"#{key}\": {"
       case value
       when NilClass
       when TrueClass, FalseClass
-        buffer.puts '"type": "boolean",'
-        buffer.puts "\"required\": #{required}"
+        statement_group.add '"type": "boolean"'
+        statement_group.add "\"required\": #{required}"
 
       when String
-        buffer.puts '"type": "string",'
-        buffer.puts "\"required\": #{required}"
+        statement_group.add '"type": "string"'
+        statement_group.add "\"required\": #{required}"
 
       when Integer
-        buffer.puts '"type": "integer",'
-        buffer.puts "\"required\": #{required}"
+        statement_group.add '"type": "integer"'
+        statement_group.add "\"required\": #{required}"
 
       when Float
-        buffer.puts '"type": "number",'
-        buffer.puts "\"required\": #{required}"
+        statement_group.add '"type": "number"'
+        statement_group.add "\"required\": #{required}"
       when Array
-        buffer << create_array(value, detect_required(value))
+        create_array(statement_group, value, detect_required(value))
       when Hash
-        buffer << create_hash(value, required_keys)
+        create_hash(statement_group, value, required_keys)
       else
         raise "Unknown Type for #{key}! #{value.class}"
       end
-      buffer.print "}"
-      buffer.string
+      statement_group
     end
 
-    def create_hash(data, required_keys)
-      buffer = StringIO.new
-      buffer.puts '"type": "object",'
-      buffer.puts '"required": true,'
-      buffer.puts '"properties": {'
-      items = data.collect do |k,v|
-        create_values k, v, required_keys
+    def create_hash(statement_group, data, required_keys)
+      # statement_group = StatementGroup.new
+      statement_group.add '"type": "object"'
+      statement_group.add '"required": true'
+      statement_group.add create_hash_properties data, required_keys
+      statement_group
+    end
+
+    def create_hash_properties(data, required_keys)
+      statement_group = StatementGroup.new "properties"
+      data.collect do |k,v|
+        statement_group.add create_values k, v, required_keys
       end
-      buffer << items.join(",\n")
-      buffer.puts '}'
-
-      buffer.string
+      statement_group
     end
 
-    def create_array(data, required_keys)
-      buffer = StringIO.new
-      buffer.puts '"type": "array",'
-      buffer.puts '"required": true,'
+    def create_array(statement_group, data, required_keys)
+      # statement_group = StatementGroup.new
+      statement_group.add '"type": "array"'
+      statement_group.add '"required": true'
       if data.size == 0
-        buffer.puts '"minItems": 0,'
+        statement_group.add '"minItems": 0'
       else
-        buffer.puts '"minItems": 1,'
+        statement_group.add '"minItems": 1'
       end
-      buffer.puts '"uniqueItems": true,'
-      buffer.puts create_values("items", data.first, required_keys)
+      statement_group.add '"uniqueItems": true'
+      statement_group.add create_values("items", data.first, required_keys)
 
-      buffer.string
+      statement_group
     end
 
     def detect_required(collection)
