@@ -4,6 +4,8 @@ module JSON
   class SchemaGenerator
     DRAFT3 = 'draft-03'
     DRAFT4 = 'draft-04'
+    DEFAULT_VERSION = 'draft3'
+    SUPPORTED_VERSIONS = ['draft3', 'draft4']
 
     class << self
       def generate name, data, opts = {}
@@ -13,10 +15,11 @@ module JSON
     end
 
     def initialize name, opts = {}
-      version = opts[:version] || 'draft3'
-      if ['draft3', 'draft-03'].include? version.downcase
+      version = opts[:schema_version] || DEFAULT_VERSION
+      # Unfortunately json-schema.org and json-schema (gem) use different version strings
+      if ['draft3', 'draft-03'].include? version.to_s.downcase
         @version = DRAFT3
-      elsif ['draft4', 'draft-04'].include? version.downcase
+      elsif ['draft4', 'draft-04'].include? version.to_s.downcase
         @version = DRAFT4
       else
         abort "Unsupported schema version: #{version}"
