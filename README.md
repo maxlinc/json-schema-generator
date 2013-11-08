@@ -47,7 +47,7 @@ JSON::SchemaGenerate has the following features or assumptions for generating "b
 * **Assume required:** in all other cases, I assume everything I find in the sample is required.  I believe it is better to generate a schema that is too strict than too lenient.  It is easy to review and fix false negatives, by updating the schema to mark those items as optional.  A false positive will go unnoticed and will not point you towards a solution.
 * **Array assumptions:** Similarly, I assume arrays must have at least 1 element, unless the sample contains an empty array.  Again, this is to create false negatives instead of false positives.
 * **Detect types:** I detect objects, arrays, strings, integers, numbers and booleans.
-* **Description:** generates a description indicating what sample the schema came from.  Useful to determine if differences between and existing and freshly generated schema are from customizations or because the sample data has changed.  Sample description: *"Generated from spec/fixtures/examples/servers.json with shasum 568cdaa5cef13f7b5ece95a9dc6d65460d8362ba"*
+* **Description:** generates a description indicating what sample the schema came from.  Useful to determine if differences between and existing and freshly generated schema are from customizations or because the sample data has changed.  Sample description: *"Generated from kata/spec/fixtures/examples/servers.json with shasum 568cdaa5cef13f7b5ece95a9dc6d65460d8362ba"*
 
 ## Known issues
 
