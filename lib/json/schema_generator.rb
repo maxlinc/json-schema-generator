@@ -84,7 +84,7 @@ module JSON
       if @version == DRAFT4
         required_keys ||= []
         required_string = required_keys.map(&:inspect).join ', '
-        statement_group.add "\"required\": [#{required_string}]"
+        statement_group.add "\"required\": [#{required_string}]" unless required_keys.empty?
       end
       statement_group.add create_hash_properties data, required_keys
       statement_group

@@ -5,7 +5,6 @@ rvm:
 - jruby-19mode
 - rbx-19mode
 env:
-  EXCLUDE_SCHEMA_VERSION=draft4
   JSON_GENERATOR="bundle exec json_schema_generator"
 before_install:
   - git submodule update --init --recursive
