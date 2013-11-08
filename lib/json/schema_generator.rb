@@ -6,17 +6,24 @@ module JSON
     DRAFT4 = 'draft-04'
 
     class << self
-      def generate name, data, version
-        generator = JSON::SchemaGenerator.new name, version
+      def generate name, data, opts = {}
+        generator = JSON::SchemaGenerator.new name, opts
         generator.generate data
       end
     end
 
-    def initialize name, version = 'draft3'
+    def initialize name, opts = {}
+      version = opts[:version] || 'draft3'
+      if ['draft3', 'draft-03'].include? version.downcase
+        @version = DRAFT3
+      elsif ['draft4', 'draft-04'].include? version.downcase
+        @version = DRAFT4
+      else
+        abort "Unsupported schema version: #{version}"
+      end
+
       @buffer = StringIO.new
       @name = name
-      @version = DRAFT3 if version == 'draft3'
-      @version = DRAFT4 if version == 'draft4'
     end
 
     def generate raw_data
