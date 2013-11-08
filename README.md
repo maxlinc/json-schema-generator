@@ -28,15 +28,15 @@ Or install it yourself as:
 
 Command line:
 ```sh
-# Usage: json-schema-generator <sample_file> [schema_version]
-
-$ json-schema-generator my_sample.json draft3
+# Usage: json-schema-generator --help
+# Simple example:
+$ json-schema-generator my_sample.json --schema-version draft3
 ```
 
 Ruby:
 ```ruby
 file = 'my_sample.json' # or any identifier for the description
-JSON::SchemaGenerator.generate file, File.read(file), 'draft3'
+JSON::SchemaGenerator.generate file, File.read(file), {:schema_version => 'draft3'}
 ```
 
 ## Features

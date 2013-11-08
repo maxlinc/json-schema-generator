@@ -12,12 +12,14 @@ class JSON::SchemaGeneratorCLI
     supported_versions = JSON::SchemaGenerator::SUPPORTED_VERSIONS
 
     options = {
-      :schema_version => default_version
+      :schema_version => default_version,
+      :defaults => false
     }
 
 
 
     OptionParser.new do |opts|
+      opts.on("--defaults", "Record default values in the generated schema") { options[:defaults] = true }
       opts.on("--schema-version [VERSION]", [:draft3, :draft4],
         "Version of json-schema to generate (#{supported_versions.join ', '}).  Default: #{default_version}") do |schema_version|
           options[:schema_version] = schema_version

@@ -25,6 +25,8 @@ module JSON
         abort "Unsupported schema version: #{version}"
       end
 
+      @defaults = opts[:defaults]
+
       @buffer = StringIO.new
       @name = name
     end
@@ -63,12 +65,11 @@ module JSON
 
       statement_group.add "\"type\": \"#{type}\""
       statement_group.add "\"required\": #{required}" if @version == DRAFT3
-      # statement_group.add "\"default\": #{value.inspect}"
+      statement_group.add "\"default\": #{value.inspect}" if @defaults
     end
 
     def create_values(key, value, required_keys = nil, in_array = false)
       statement_group = StatementGroup.new key
-      # buffer.puts "\"#{key}\": {"
       case value
       when NilClass
       when TrueClass, FalseClass, String, Integer, Float
@@ -88,7 +89,6 @@ module JSON
     end
 
     def create_hash(statement_group, data, required_keys)
-      # statement_group = StatementGroup.new
       statement_group.add '"type": "object"'
       statement_group.add '"required": true' if @version == DRAFT3
       if @version == DRAFT4
@@ -109,7 +109,6 @@ module JSON
     end
 
     def create_array(statement_group, data, required_keys)
-      # statement_group = StatementGroup.new
       statement_group.add '"type": "array"'
       statement_group.add '"required": true' if @version == DRAFT3
       if data.size == 0
