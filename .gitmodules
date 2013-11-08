@@ -1,3 +1,3 @@
 [submodule "kata"]
 	path = kata
-	url = git@github.com:maxlinc/json-schema-kata.git
+	url = https://github.com/maxlinc/json-schema-kata.git
