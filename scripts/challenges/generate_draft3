@@ -1,0 +1,3 @@
+#!/bin/bash
+file=$1
+bundle exec json-schema-generator $1
