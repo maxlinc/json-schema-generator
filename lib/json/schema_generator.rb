@@ -4,7 +4,7 @@ module JSON
   class SchemaGenerator
     DRAFT3 = 'draft-03'
     DRAFT4 = 'draft-04'
-    DEFAULT_VERSION = 'draft3'
+    DEFAULT_VERSION = 'draft4'
     SUPPORTED_VERSIONS = ['draft3', 'draft4']
 
     class << self
