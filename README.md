@@ -48,7 +48,7 @@ JSON::SchemaGenerate has the following features or assumptions for generating "b
   * **Defaults**: Can generate default values.
   * **Descriptions**: Can generate a description indicating where the schema came from.
 * **Features/Assumptions**:
-  * **Detecting optional properties:** if you have an array of hashes, then will detect which hash keys exist in every instance of the hash and which ones only exist in some, and use this data to decide if the key is required or optional in the schema.
+  * **Detecting optional properties:** if you are using arrays (even arrays with complex nested types), the generator will use all available data to figure detect if a field is optional.
   * **Assume required:** in all other cases, I assume everything I find in the sample is required.  I believe it is better to generate a schema that is too strict than too lenient.  It is easy to review and fix false negatives, by updating the schema to mark those items as optional.  A false positive will go unnoticed and will not point you towards a solution.
   * **Detect types:** I detect objects, arrays, strings, integers, numbers and booleans.
 
