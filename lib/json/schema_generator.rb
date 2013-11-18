@@ -1,4 +1,5 @@
 require 'json/schema_generator/statement_group'
+require 'json/schema_generator/brute_force_required_search'
 
 module JSON
   class SchemaGenerator
@@ -33,6 +34,8 @@ module JSON
 
     def generate raw_data
       data = JSON.load(raw_data)
+      @brute_search = BruteForceRequiredSearch.new data
+
       statement_group = StatementGroup.new
       statement_group.add "\"$schema\": \"http://json-schema.org/#{@version}/schema#\""
       statement_group.add "\"description\": \"Generated from #{@name} with shasum #{Digest::SHA1.hexdigest raw_data}\""
@@ -103,7 +106,9 @@ module JSON
     def create_hash_properties(data, required_keys)
       statement_group = StatementGroup.new "properties"
       data.collect do |k,v|
+        @brute_search.push k,v
         statement_group.add create_values k, v, required_keys
+        @brute_search.pop
       end
       statement_group
     end
@@ -125,6 +130,7 @@ module JSON
     def detect_required(collection)
       begin
         required_keys = collection.map(&:keys).inject{|required,keys| required & keys }
+        required_keys = @brute_search.find_required
       rescue
         if collection.respond_to? :keys
           required_keys = collection.keys
