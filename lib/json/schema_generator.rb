@@ -129,7 +129,6 @@ module JSON
 
     def detect_required(collection)
       begin
-        required_keys = collection.map(&:keys).inject{|required,keys| required & keys }
         required_keys = @brute_search.find_required
       rescue
         if collection.respond_to? :keys
