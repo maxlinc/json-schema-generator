@@ -5,7 +5,11 @@ module JSON
     class BruteForceRequiredSearch
       def initialize(data)
         @data = data.dup
-        @json_path = ['$']
+        if data.is_a? Array
+          @json_path = ['$[*]']
+        else
+          @json_path = ['$']
+        end
       end
 
       def push(key, value)

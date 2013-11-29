@@ -39,7 +39,13 @@ module JSON
       statement_group = StatementGroup.new
       statement_group.add "\"$schema\": \"http://json-schema.org/#{@version}/schema#\""
       statement_group.add "\"description\": \"Generated from #{@name} with shasum #{Digest::SHA1.hexdigest raw_data}\""
-      create_hash(statement_group, data, detect_required(data))
+      case data
+      when Array
+        $stop = true
+        create_array(statement_group, data, detect_required(data))
+      else
+        create_hash(statement_group, data, detect_required(data))
+      end
       @buffer.puts statement_group
       result
     end
