@@ -33,7 +33,13 @@ module JSON
       end
 
       def required? child_key
-        JsonPath.new(search_path(child_key)).on(@data).count == JsonPath.new(current_path).on(@data).count
+        begin
+          JsonPath.new(search_path(child_key)).on(@data).count == JsonPath.new(current_path).on(@data).count
+        rescue SyntaxError
+          # There are some special characters that can't be handled by JsonPath.
+          # e.g. if child key is OS-DCF:diskConfig
+          false
+        end
       end
 
       def child_keys 
