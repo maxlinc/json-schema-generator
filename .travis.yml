@@ -9,3 +9,9 @@ matrix:
       - rvm: rbx-2.2.1
 before_install:
   - git submodule update --init --recursive
+env:
+  - MAX=true BLAH=bar
+after_script:
+  - touch tmp/challenge_opts
+  - . tmp/challenge_opts
+  - bundle exec rake challenge
