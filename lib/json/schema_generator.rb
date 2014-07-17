@@ -27,6 +27,7 @@ module JSON
       end
 
       @defaults = opts[:defaults]
+      @allow_null = opts[:allow_null]
 
       @buffer = StringIO.new
       @name = name
@@ -72,7 +73,11 @@ module JSON
         raise "Unknown Primitive Type for #{key}! #{value.class}"
       end
 
-      statement_group.add "\"type\": \"#{type}\""
+      if @allow_null
+        statement_group.add "\"type\": #{[type, "null"]}"
+      else
+        statement_group.add "\"type\": \"#{type}\""
+      end
       statement_group.add "\"required\": #{required}" if @version == DRAFT3
       statement_group.add "\"default\": #{value.inspect}" if @defaults
     end
