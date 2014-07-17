@@ -24,6 +24,7 @@ class JSON::SchemaGeneratorCLI
         "Version of json-schema to generate (#{supported_versions.join ', '}).  Default: #{default_version}") do |schema_version|
           options[:schema_version] = schema_version
         end
+      opts.on("--allow-null", "Includes 'null' as an allow type for all properties in the schema") { options[:allow_null] = true }
       opts.parse!
     end
 
