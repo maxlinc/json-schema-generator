@@ -5,19 +5,11 @@ module JSON
     class BruteForceRequiredSearch
       def initialize(data)
         @data = data.dup
-        if data.is_a? Array
-          @json_path = ['$[*]']
-        else
-          @json_path = ['$']
-        end
+        @json_path = data.is_a?(Array) ? ['$[*]'] : ['$']
       end
 
       def push(key, value)
-        if value.is_a? Array
-          @json_path.push "#{key}[*]"
-        else
-          @json_path.push key
-        end
+        @json_path.push value.is_a?(Array) ? "#{key}[*]" : key
       end
 
       def pop
@@ -42,16 +34,12 @@ module JSON
         end
       end
 
-      def child_keys 
+      def child_keys
         JsonPath.new(current_path).on(@data).map(&:keys).flatten.uniq
       end
 
       def find_required
-        required = []
-        child_keys.each do |child_key|
-          required << child_key if required? child_key
-        end
-        required
+        child_keys.select {|k| required? k}
       end
     end
   end

@@ -10,8 +10,7 @@ module JSON
 
     class << self
       def generate name, data, opts = {}
-        generator = JSON::SchemaGenerator.new name, opts
-        generator.generate data
+        JSON::SchemaGenerator.new(name, opts).generate data
       end
     end
 
@@ -72,7 +71,7 @@ module JSON
         raise "Unknown Primitive Type for #{key}! #{value.class}"
       end
 
-      statement_group.add "\"type\": \"#{type}\""
+      statement_group.add "\"oneOf\": [{\"type\": \"#{type}\"}, {\"type\": \"null\"}]"
       statement_group.add "\"required\": #{required}" if @version == DRAFT3
       statement_group.add "\"default\": #{value.inspect}" if @defaults
     end
@@ -122,28 +121,20 @@ module JSON
     def create_array(statement_group, data, required_keys)
       statement_group.add '"type": "array"'
       statement_group.add '"required": true' if @version == DRAFT3
-      if data.size == 0
-        statement_group.add '"minItems": 0'
-      else
-        statement_group.add '"minItems": 1'
-      end
-      statement_group.add '"uniqueItems": true'
+      # FIXME - Code assumes that all items in the array have the same structure
+      # Assume lowest common denominator - allow 0 items and unique not required
+      statement_group.add '"minItems": 0'
+
+      # TODO - consider a eq? method for StatementGroup class to evaluate LCD schema from all items in array
       statement_group.add create_values("items", data.first, required_keys, true)
 
       statement_group
     end
 
     def detect_required(collection)
-      begin
-        required_keys = @brute_search.find_required
-      rescue
-        if collection.respond_to? :keys
-          required_keys = collection.keys
-        else
-          required_keys = nil
-        end
-      end
-      required_keys
+      @brute_search.find_required
+    rescue NoMethodError
+      collection.keys if collection.respond_to?(:keys)
     end
 
     def result
