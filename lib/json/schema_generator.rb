@@ -1,6 +1,5 @@
 require 'json/schema_generator/statement_group'
 require 'json/schema_generator/brute_force_required_search'
-
 module JSON
   class SchemaGenerator
     DRAFT3 = 'draft-03'
@@ -72,7 +71,7 @@ module JSON
         raise "Unknown Primitive Type for #{key}! #{value.class}"
       end
 
-      statement_group.add "\"type\": \"#{type}\""
+      statement_group.add "\"oneOf\": [{\"type\": \"#{type}\"}, {\"type\": \"null\"}]"
       statement_group.add "\"required\": #{required}" if @version == DRAFT3
       statement_group.add "\"default\": #{value.inspect}" if @defaults
     end
@@ -128,8 +127,11 @@ module JSON
         statement_group.add '"minItems": 1'
       end
       statement_group.add '"uniqueItems": true'
-      statement_group.add create_values("items", data.first, required_keys, true)
-
+      if data.first.is_a? Hash
+       statement_group.add create_values("items", data.inject(:merge),required_keys, true)
+      else
+       statement_group.add create_values("items", data.first, required_keys, true)
+      end
       statement_group
     end
 
